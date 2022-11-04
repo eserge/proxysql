@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  mysqlread1:
+    image: mariadb:10.5
+    container_name: db-slave1
+    volumes:
+      - ./slave1.cnf:/etc/mysql/conf.d/repl.cnf
+      - ./slave.sql:/docker-entrypoint-initdb.d/start.sql
+    depends_on:
+      - mysqlmaster
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+    ports:
+      - "3307:3306"
+    networks:
+      slave1-network:
+        ipv4_address: 192.168.128.4
+
+networks:
+  slave1-network:
+    name: crypto-network
