@@ -1,0 +1,35 @@
+[server default]
+# mysql user and password
+user=crypto_user
+password=cryptopassword
+# replication user password
+repl_user=root
+repl_password=secret
+
+remote_workdir=/var/tmp
+# working directory on the manager
+manager_workdir=/var/log/mha/
+# manager log file
+manager_log=/var/log/mha/mha.log
+ping_interval=15
+
+master_ip_failover_script=/usr/local/bin/master_ip_failover 
+master_ip_online_change_script=/usr/local/bin/master_ip_online_change 
+master_binlog_dir=/data/log/
+secondary_check_script=/etc/mha/mha_prod/failover_triggered.sh
+report_script=/etc/mha/mha_prod/failover_report.sh
+master_pid_file=/var/run/mysqld/mysqld.pid 
+ssh_user=sysbench 
+log_level=debug 
+#set this to 0 if YOU ARE SURE THIS CAN"T BREAK YOUR REPLICATION 
+check_repl_filter=1 
+[server1] 
+hostname=192.168.128.3
+port=3306 
+[server2] 
+hostname=192.168.128.4
+port=3306 
+[server3] 
+hostname=192.168.128.5
+port=3306 
+no_master=1

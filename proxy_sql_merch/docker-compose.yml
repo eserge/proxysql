@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  proxysql:
+    image: proxysql/proxysql
+    container_name: proxysql-merch
+    ports:
+      - '16034:6032'
+      - '16035:6033'
+      - '16071:6070'
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf
+    networks:
+      proxysql-network:
+        ipv4_address: 192.168.96.2
+
+networks:
+  proxysql-network:
+    name: merchant-network

@@ -3,18 +3,18 @@ version: '3.7'
 services:
   mysqlread2:
     image: mariadb:10.5
-    container_name: db-slave2-fwd
+    container_name: db-slave2-merch
     volumes:
       - ./slave2.cnf:/etc/mysql/conf.d/repl.cnf
       - ./slave.sql:/docker-entrypoint-initdb.d/start.sql
     environment:
       MYSQL_ROOT_PASSWORD: secret
     ports:
-      - "3308:3306"
+      - "3303:3306"
     networks:
-      slave2-network:
-        ipv4_address: 192.168.128.5
+      slave2-network-merch:
+        ipv4_address: 192.168.96.5
 
 networks:
-  slave2-network:
-    name: crypto-network
+  slave2-network-merch:
+    name: merchant-network

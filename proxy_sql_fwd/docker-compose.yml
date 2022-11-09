@@ -3,7 +3,7 @@ version: '3.7'
 services:
   proxysql:
     image: proxysql/proxysql
-    container_name: proxysql
+    container_name: proxysql-fwd
     ports:
       - '16032:6032'
       - '16033:6033'

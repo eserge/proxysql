@@ -3,28 +3,28 @@ version: '3.7'
 services:
   mysqlmaster:
     image: mariadb:10.5
-    container_name: db-master-fwd
+    container_name: db-master-merch
     volumes:
       - ./master.cnf:/etc/mysql/conf.d/repl.cnf
       - ./master.sql:/docker-entrypoint-initdb.d/start.sql
     environment:
       MYSQL_ROOT_PASSWORD: secret
-      MYSQL_ROOT_HOST: 192.168.128.3
-      MYSQL_DATABASE: app_db
+      MYSQL_ROOT_HOST: 192.168.96.3
+      MYSQL_DATABASE: crypto_db
       MYSQL_USER: crypto_user
       MYSQL_PASSWORD: cryptopassword
     ports:
-      - "3306:3306"
+      - "3301:3306"
     networks:
-      crypto-network:
-        ipv4_address: 192.168.128.3
+      merchant-network:
+        ipv4_address: 192.168.96.3
 
 networks:
-  crypto-network:
-    name: crypto-network
+  merchant-network:
+    name: merchant-network
     driver: bridge
     ipam:
       driver: default
       config:
-      - subnet: 192.168.128.0/20
-        gateway: 192.168.128.1
+      - subnet: 192.168.96.0/20
+        gateway: 192.168.96.1

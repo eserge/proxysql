@@ -1,0 +1,3 @@
+[mariadb]
+server-id=3
+read_only=1
