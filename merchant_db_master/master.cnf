@@ -1,5 +1,3 @@
 [mariadb]
 server-id=1
 binlog_format=ROW
-log-bin
-read_only=1
