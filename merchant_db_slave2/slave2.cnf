@@ -1,4 +1,4 @@
 [mariadb]
 server-id=3
 read_only=1
-log-bin=/var/log/mysql/log-bin
+log-bin=/var/log/mysql/log-bin-slave2
