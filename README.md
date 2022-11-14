@@ -7,9 +7,11 @@
 ```
 ## enter to the master DB shell
 ```bash
-docker exec -it db-master-fwd mysql -uroot -psecret
-docker exec -it db-master-merch mysql -uroot -psecret
+docker exec -it db-master-fwd mysql -uroot -psecret app_db
+docker exec -it db-master-merch mysql -uroot -psecret crypto_db
 ```
+The same for slave1 and slave2
+
 
 ## stop db containers
 ```bash
