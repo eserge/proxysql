@@ -9,11 +9,6 @@ services:
       - ./slave.sql:/docker-entrypoint-initdb.d/start.sql
     environment:
       MYSQL_ROOT_PASSWORD: secret
-      MYSQL_ROOT_HOST: 192.168.128.5
-      MYSQL_DATABASE: app_db
-      MYSQL_USER: crypto_user
-      MYSQL_PASSWORD: cryptopassword
-
     ports:
       - "3308:3306"
     networks:
