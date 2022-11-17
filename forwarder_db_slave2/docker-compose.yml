@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  mysqlread2:
+  db-slave2-fwd:
     image: mariadb:10.5
     container_name: db-slave2-fwd
     volumes:
@@ -12,9 +12,9 @@ services:
     ports:
       - "3308:3306"
     networks:
-      slave2-network:
+      slave2-fwd-network:
         ipv4_address: 192.168.128.5
 
 networks:
-  slave2-network:
-    name: crypto-network
+  slave2-fwd-network:
+    name: forwarder-network

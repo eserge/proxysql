@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  proxysql:
+  proxysql-fwd:
     image: proxysql/proxysql
     container_name: proxysql-fwd
     ports:
@@ -11,9 +11,9 @@ services:
     volumes:
       - ./proxysql.cnf:/etc/proxysql.cnf
     networks:
-      proxysql-network:
+      proxysql-fwd-network:
         ipv4_address: 192.168.128.2
 
 networks:
-  proxysql-network:
-    name: crypto-network
+  proxysql-fwd-network:
+    name: forwarder-network

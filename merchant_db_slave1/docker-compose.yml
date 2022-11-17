@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  mysqlread1:
+  db-slave1-merch:
     image: mariadb:10.5
     container_name: db-slave1-merch
     volumes:
@@ -12,9 +12,9 @@ services:
     ports:
       - "3302:3306"
     networks:
-      slave1-network-merch:
+      slave1-merch-network:
         ipv4_address: 192.168.96.4
 
 networks:
-  slave1-network-merch:
+  slave1-merch-network:
     name: merchant-network
