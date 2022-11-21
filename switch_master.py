@@ -1,15 +1,19 @@
 import sys
+import os
 
 import mysql.connector
 from mysql.connector.errors import DatabaseError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 old_master_host = sys.argv[1]
 new_master_host = sys.argv[2]
-replica_host = "192.168.96.5"
-slavepass = "slavepass"
-db_user = "root"
-db_pass = "secret"
-db_port = 3306
+replica_host = sys.argv[3]
+slavepass = os.getenv('SLAVEPASS')
+db_user = os.getenv('DB_USER')
+db_pass = os.getenv('DB_PASSWORD')
+db_port = os.getenv('DB_PORT')
 
 
 def connect_db(host, port, user, password):

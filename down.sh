@@ -1,2 +1,2 @@
-./down-db-fwd.sh
-./down-db-merch.sh
+./scripts/down-db-fwd.sh
+./scripts/down-db-merch.sh

@@ -1,2 +1,2 @@
-./run-fwd.sh
-./run-merch.sh
+./scripts/run-fwd.sh
+./scripts/run-merch.sh
