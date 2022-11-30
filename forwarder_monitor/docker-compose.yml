@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  mon-fwd:
+    build:
+      context: ../monitor/
+    container_name: mon-fwd
+    entrypoint: [ "python", "ping.py" ]
+    env_file:
+      - .env
+    networks:
+      mon-fwd-network:
+        ipv4_address: 192.168.128.200
+
+networks:
+  mon-fwd-network:
+    name: forwarder-network
