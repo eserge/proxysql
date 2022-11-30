@@ -1,9 +1,21 @@
+import sys
 import mysql.connector
+
+args_list = sys.argv
+
+try:
+    HOST = args_list[1]
+except IndexError:
+    HOST = "192.168.96.2"
+try:
+    PORT = args_list[2]
+except IndexError:
+    PORT =  6033
 
 
 db2 = mysql.connector.connect(
-    host="192.168.96.2",
-    port=6033,
+    host=HOST,
+    port=PORT,
     user="sysbench",
     password="sysbench",
     db="crypto_db"
