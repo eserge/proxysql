@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-check_host = '192.168.96.3'
-new_master = '192.168.96.4'
-replica = '192.168.96.5'
+check_host = '192.168.128.3'
+new_master = '192.168.128.4'
+replica = '192.168.128.5'
 db_port = os.getenv('DB_PORT')
 db_user = os.getenv('DB_USER')
 db_password = os.getenv('DB_PASSWORD')
@@ -36,4 +36,5 @@ def ping(check_host, new_master, replica):
 
 
 if __name__ == '__main__':
+    print(os.environ)
     ping(check_host, new_master, replica)
