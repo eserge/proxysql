@@ -7,4 +7,4 @@ RUN pip install -r /requirements.txt
 
 COPY src/ /app/
 
-# ENTRYPOINT ["python", "ping.py"]
+CMD [ "python", "ping.py" ]
