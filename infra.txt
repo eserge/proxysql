@@ -1,0 +1,13 @@
+Forwarder:
+proxysql-fwd    proxysql/proxysql   0.0.0.0:16032->6032/tcp, 0.0.0.0:16033->6033/tcp, 0.0.0.0:16070->6070/tcp
+db-master-fwd   mariadb:10.5    0.0.0.0:3306->3306/tcp
+db-slave1-fwd   mariadb:10.5    0.0.0.0:3307->3306/tcp
+db-slave2-fwd   mariadb:10.5    0.0.0.0:3308->3306/tcp
+
+
+Merchant:
+proxysql-merch  proxysql/proxysql   0.0.0.0:16034->6032/tcp, 0.0.0.0:16035->6033/tcp, 0.0.0.0:16071->6070/tcp
+db-master-merch mariadb:10.5        0.0.0.0:3301->3306/tcp
+db-slave1-merch mariadb:10.5        0.0.0.0:3302->3306/tcp
+db-slave2-merch mariadb:10.5        0.0.0.0:3303->3306/tcp
+
