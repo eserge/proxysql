@@ -5,7 +5,6 @@ services:
     build:
       context: ../monitor/
     container_name: mon-fwd
-    entrypoint: [ "python", "ping.py" ]
     env_file:
       - .env
     networks:
