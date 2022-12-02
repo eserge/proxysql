@@ -15,6 +15,10 @@ db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASSWORD')
 db_port = os.getenv('DB_PORT')
 
+# Minimal timeout make switchover faster
+# If we are in this script, DB should be dead anyway
+CONNECTION_TIMEOUT = 0.5
+
 
 def connect_db(host, port, user, password):
     db = mysql.connector.connect(
@@ -27,7 +31,7 @@ def connect_db(host, port, user, password):
 
 
 try:
-    db_old_master = connect_db(old_master_host, db_port, db_user, db_pass)
+    db_old_master = connect_db(old_master_host, db_port, db_user, db_pass, connection_timeout=CONNECTION_TIMEOUT)
 except (DatabaseError, InterfaceError):
     print('---Master is dead---')
 else:
