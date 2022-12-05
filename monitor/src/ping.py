@@ -25,7 +25,7 @@ def ping(user, password, port, current_master, new_master, replica):
         except (DatabaseError, InterfaceError):
             sys.stdout.write("Oops, master is dead, switching to another DB.\n")
             sys.stdout.flush()
-            subprocess.run(["./switchover.sh", current_master, new_master, replica])
+            subprocess.run(["./proxysql.py", current_master, new_master, replica])
             break
         else:
             sys.stdout.write("It is OK till now!\n")

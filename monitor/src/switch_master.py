@@ -3,9 +3,9 @@ import os
 
 import mysql.connector
 from mysql.connector.errors import DatabaseError, InterfaceError
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 old_master_host = sys.argv[1]
 new_master_host = sys.argv[2]
@@ -15,7 +15,7 @@ db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASSWORD')
 db_port = os.getenv('DB_PORT')
 
-# Minimal timeout make switchover faster
+# Minimal timeout to make switchover faster
 # If we are in this script, DB should be dead anyway
 CONNECTION_TIMEOUT = 0.5
 
@@ -33,7 +33,7 @@ def connect_db(host, port, user, password):
 try:
     db_old_master = connect_db(old_master_host, db_port, db_user, db_pass, connection_timeout=CONNECTION_TIMEOUT)
 except (DatabaseError, InterfaceError):
-    print('---Master is dead---')
+    print('Master is dead, nothing to do')
 else:
     cursor_old_master = db_old_master.cursor()
     print('---Setting old master to slave status---')
