@@ -31,11 +31,13 @@ NewMaster = sys.argv[2]  # "192.168.128.4"
 Replica = sys.argv[3]  # "192.168.128.5"
 try:
     sys.argv[4]  # "no" or any other value
-    is_switchover = False
-except IndexError:
     is_switchover = True
+except IndexError:
+    is_switchover = False
 
-logger.debug("Arguments: %s, %s, %s, %s", (OldMaster, NewMaster, Replica, is_switchover))
+
+logger.debug("Arguments: %s, %s, %s, %s", OldMaster, NewMaster, Replica, is_switchover)
+
 
 def proxysql_update_servers(cursor):
     logger.info("MySQL servers to disk and runtime")
@@ -43,66 +45,101 @@ def proxysql_update_servers(cursor):
     cursor.execute("SAVE MYSQL SERVERS TO DISK;")
 
 
-logger.info(
-    "Trying to connect to ProxySQL admin on"
-    f" {PROXYSQL_USER}:{PROXYSQL_PASSWORD}@{PROXYSQL_HOST}:{PROXYSQL_PORT}"
-)
-proxysql = mysql.connector.connect(
-    host=PROXYSQL_HOST,
-    port=PROXYSQL_PORT,
-    user=PROXYSQL_USER,
-    password=PROXYSQL_PASSWORD,
-)
-logger.debug(proxysql)
+def get_cursor(dry_run=False):
+    if dry_run:
+        class FakeCursor:
+            def execute(*args, **kwargs):
+                return
 
-ps_cursor = proxysql.cursor()
-ps_cursor.execute("SELECT * FROM mysql_servers;")
-logger.debug(ps_cursor.fetchall())
+            def fetchall(*args, **kwargs):
+                return []
 
-logger.info("Change read-write status for old master")
-logger.info("Setting master status OFFLINE_SOFT")
-sql = "UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='%(hostname)s'" % {'hostname': OldMaster}
-logger.debug(sql)
-ps_cursor.execute(sql)
-proxysql_update_servers(ps_cursor)
-# exit()
+        return FakeCursor()
 
-time.sleep(1)
-logger.info("Here python script changes master and slave")
-# run python switch_master.py $OldMaster $NewMaster $Replica
-# subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
-logger.info("Python script has finished working")
+    logger.info(
+        "Trying to connect to ProxySQL admin on"
+        f" {PROXYSQL_USER}:{PROXYSQL_PASSWORD}@{PROXYSQL_HOST}:{PROXYSQL_PORT}"
+    )
+    proxysql = mysql.connector.connect(
+        host=PROXYSQL_HOST,
+        port=PROXYSQL_PORT,
+        user=PROXYSQL_USER,
+        password=PROXYSQL_PASSWORD,
+    )
+    logger.debug(proxysql)
 
-logger.info("Delete write old master")
-sql = "DELETE FROM mysql_servers where hostgroup_id=0 and hostname='%(hostname)s'" % {'hostname': OldMaster}
-logger.debug(sql)
-ps_cursor.execute(sql)
-proxysql_update_servers(ps_cursor)
-time.sleep(1)
+    ps_cursor = proxysql.cursor()
+    return ps_cursor
 
-logger.info("Add new master")
-sql = "INSERT INTO mysql_servers(hostgroup_id, hostname, port, status) values (0, '%{hostname}s', 3306, 'ONLINE')" % {'hostname': NewMaster}
-logger.debug(sql)
-ps_cursor.execute(sql)
-proxysql_update_servers(ps_cursor)
 
-time.sleep(1)
-logger.info("Change status read old master")
-if is_switchover:
-    logger.info("Setting master status ONLINE")
-    sql = "UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': OldMaster}
+def put_to_offline_soft(hostname, cursor):
+    logger.info("Change read-write status for old master")
+    logger.info("Setting master status OFFLINE_SOFT")
+    sql = "UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='%(hostname)s'" % {'hostname': hostname}
     logger.debug(sql)
-    ps_cursor.execute(sql)
-else:
-    logger.info("Setting master status SHUNNED")
-    sql = "UPDATE mysql_servers SET status='SHUNNED' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': OldMaster}
+    cursor.execute(sql)
+    proxysql_update_servers(cursor)
+
+
+def reconfiure_replication():
+    time.sleep(1)
+    logger.info("Here python script changes master and slave")
+    # run python switch_master.py $OldMaster $NewMaster $Replica
+    # subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
+    logger.info("Python script has finished working")
+
+
+def delete_old_master(hostname, cursor):
+    logger.info("Delete write old master")
+    sql = "DELETE FROM mysql_servers where hostgroup_id=0 and hostname='%(hostname)s'" % {'hostname': hostname}
     logger.debug(sql)
-    ps_cursor.execute(sql)
-proxysql_update_servers(ps_cursor)
+    cursor.execute(sql)
+    proxysql_update_servers(cursor)
+    time.sleep(1)
 
-ps_cursor.execute("SELECT * FROM mysql_servers;")
-logger.info(ps_cursor.fetchall())
 
+def set_new_master(hostname, cursor):
+    logger.info("Add new master")
+    sql = (
+        "INSERT INTO mysql_servers (hostgroup_id, hostname, port, status, weight) values (0, '%(hostname)s', 3306, 'ONLINE', 1000)" % {
+            'hostname': hostname,
+        }
+    )
+    logger.debug(sql)
+    cursor.execute(sql)
+    proxysql_update_servers(cursor)
+    time.sleep(1)
+
+
+def old_master_for_reading(hostname, cursor):
+    logger.info("Change status read old master")
+    if is_switchover:
+        logger.info("Setting master status ONLINE")
+        sql = "UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': hostname}
+        logger.debug(sql)
+    else:
+        logger.info("Setting master status SHUNNED")
+        sql = "UPDATE mysql_servers SET status='SHUNNED' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': hostname}
+        logger.debug(sql)
+    cursor.execute(sql)
+    proxysql_update_servers(cursor)
+
+
+def main():
+    ps_cursor = get_cursor(dry_run=True)
+    ps_cursor.execute("SELECT * FROM mysql_servers;")
+    logger.info(ps_cursor.fetchall())
+
+    put_to_offline_soft(OldMaster, ps_cursor)
+    reconfiure_replication()
+    delete_old_master(OldMaster, ps_cursor)
+    set_new_master(OldMaster, ps_cursor)
+    old_master_for_reading(OldMaster, ps_cursor)
+
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
 
 
