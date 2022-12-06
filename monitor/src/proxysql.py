@@ -9,10 +9,12 @@ import mysql.connector
 
 logger = logging.getLogger("proxysql")
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 if len(sys.argv) < 3:
-    print("switchover.py [proxysql_host] [proxysql_admin_port]")
+    print("proxysql.py [old_master] [new_master] [replica]")
+    exit()
 
 # PROXYSQL_HOST = sys.argv[1]
 # PROXYSQL_PORT = sys.argv[2]
@@ -31,6 +33,7 @@ try:
 except IndexError:
     Switch = "yes"
 
+logger.debug("Arguments: %s, %s, %s, %s", (OldMaster, NewMaster, Replica, Switch))
 
 def proxysql_update_servers(cursor):
     logger.info("MySQL servers to disk and runtime")
@@ -55,18 +58,23 @@ ps_cursor.execute("SELECT * FROM mysql_servers;")
 logger.debug(ps_cursor.fetchall())
 
 logger.info("Change read-write status for old master")
-print("Setting master status OFFLINE_SOFT")
-ps_cursor.execute("UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname=:hostname", hostname=OldMaster)
+logger.info("Setting master status OFFLINE_SOFT")
+sql = "UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='%(hostname)s'" % {'hostname': OldMaster}
+logger.debug(sql)
+ps_cursor.execute(sql)
 proxysql_update_servers(ps_cursor)
+# exit()
 
 time.sleep(1)
 logger.info("Here python script changes master and slave")
 # run python switch_master.py $OldMaster $NewMaster $Replica
-subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
+# subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
 logger.info("Python script is finished working")
 
 logger.info("Delete write old master")
-ps_cursor.execute("DELETE FROM mysql_servers where hostgroup_id=0 and hostname=:hostname", hostname=OldMaster)
+sql = "DELETE FROM mysql_servers where hostgroup_id=0 and hostname='%(hostname)s'" % {'hostname': OldMaster}
+logger.debug(sql)
+ps_cursor.execute(sql)
 proxysql_update_servers(ps_cursor)
 
 
@@ -75,11 +83,23 @@ time.sleep(1)
 logger.info("Change status read old master")
 if Switch == "yes":
     logger.info("Setting master status ONLINE")
-    ps_cursor.execute("UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname=:hostname", hostname=OldMaster)
+    sql = "UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': OldMaster}
+    logger.debug(sql)
+    ps_cursor.execute(sql)
 else:
     logger.info("Setting master status SHUNNED")
-    ps_cursor.execute("UPDATE mysql_servers SET status='SHUNNED' WHERE hostgroup_id=1 AND hostname=:hostname", hostname=OldMaster)
+    sql = "UPDATE mysql_servers SET status='SHUNNED' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': OldMaster}
+    logger.debug(sql)
+    ps_cursor.execute(sql)
 proxysql_update_servers(ps_cursor)
+
+ps_cursor.execute("SELECT * FROM mysql_servers;")
+logger.info(ps_cursor.fetchall())
+
+
+
+
+
 
 # sleep 1
 # echo "Change status read old master"
