@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+import json
 import os
 import subprocess
 import sys
@@ -29,11 +30,12 @@ OldMaster = sys.argv[1]  # "192.168.128.3"
 NewMaster = sys.argv[2]  # "192.168.128.4"
 Replica = sys.argv[3]  # "192.168.128.5"
 try:
-    Switch = sys.argv[4]  # "yes"
+    sys.argv[4]  # "yes" or any other value
+    is_switchover = True
 except IndexError:
-    Switch = "yes"
+    is_switchover = False
 
-logger.debug("Arguments: %s, %s, %s, %s", (OldMaster, NewMaster, Replica, Switch))
+logger.debug("Arguments: %s, %s, %s, %s", (OldMaster, NewMaster, Replica, is_switchover))
 
 def proxysql_update_servers(cursor):
     logger.info("MySQL servers to disk and runtime")
@@ -65,11 +67,11 @@ ps_cursor.execute(sql)
 proxysql_update_servers(ps_cursor)
 # exit()
 
-time.sleep(1)
+time.sleep(3)
 logger.info("Here python script changes master and slave")
 # run python switch_master.py $OldMaster $NewMaster $Replica
 # subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
-logger.info("Python script is finished working")
+logger.info("Python script has finished working")
 
 logger.info("Delete write old master")
 sql = "DELETE FROM mysql_servers where hostgroup_id=0 and hostname='%(hostname)s'" % {'hostname': OldMaster}
@@ -81,7 +83,7 @@ proxysql_update_servers(ps_cursor)
 
 time.sleep(1)
 logger.info("Change status read old master")
-if Switch == "yes":
+if is_switchover:
     logger.info("Setting master status ONLINE")
     sql = "UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='%(hostname)s'" % {'hostname': OldMaster}
     logger.debug(sql)
@@ -116,3 +118,7 @@ logger.info(ps_cursor.fetchall())
 # sleep 1
 # echo "---New tables---"
 # docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "SELECT * from mysql_servers;"
+
+# UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='192.168.128.3'
+# DELETE FROM mysql_servers where hostgroup_id=0 and hostname='192.168.128.3'
+# UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='192.168.128.3'
