@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  mon-fwd:
+    build:
+      context: ../monitor/
+    container_name: tst-fwd
+    command: python testbench.py
+    env_file:
+      - .env
+    networks:
+      mon-fwd-network:
+        ipv4_address: 192.168.128.201
+  # sysbench-fwd:
+  #   image: ljishen/sysbench:latest
+  #   command: sysbench --report-interval=1 --db-driver=mysql --num-threads=4 --max-requests=0 --max-time=2000 --test=/usr/share/sysbench/tests/include/oltp_legacy/oltp.lua --mysql-user=sysbench --mysql-password=sysbench --mysql-host=192.168.128.2 --mysql-port=6033 --mysql-db=test --oltp-read-only=off run
+
+networks:
+  mon-fwd-network:
+    name: forwarder-network
