@@ -26,7 +26,7 @@ PROXYSQL_USER = "radmin"
 PROXYSQL_PASSWORD = "radmin"
 
 
-OldMaster = sys.argv[1]  # "192.168.128.3"
+old_master = sys.argv[1]  # "192.168.128.3"
 NewMaster = sys.argv[2]  # "192.168.128.4"
 Replica = sys.argv[3]  # "192.168.128.5"
 try:
@@ -35,8 +35,10 @@ try:
 except IndexError:
     is_switchover = False
 
+SLEEP_TIME = 5.0
 
-logger.debug("Arguments: %s, %s, %s, %s", OldMaster, NewMaster, Replica, is_switchover)
+
+logger.debug("Arguments: %s, %s, %s, %s", old_master, NewMaster, Replica, is_switchover)
 
 
 def proxysql_update_servers(cursor):
@@ -45,7 +47,7 @@ def proxysql_update_servers(cursor):
     cursor.execute("SAVE MYSQL SERVERS TO DISK;")
 
 
-def get_cursor(dry_run=False):
+def get_conn(dry_run=False):
     if dry_run:
         class FakeCursor:
             def execute(*args, **kwargs):
@@ -60,58 +62,65 @@ def get_cursor(dry_run=False):
         "Trying to connect to ProxySQL admin on"
         f" {PROXYSQL_USER}:{PROXYSQL_PASSWORD}@{PROXYSQL_HOST}:{PROXYSQL_PORT}"
     )
-    proxysql = mysql.connector.connect(
+    ps_connection = mysql.connector.connect(
         host=PROXYSQL_HOST,
         port=PROXYSQL_PORT,
         user=PROXYSQL_USER,
         password=PROXYSQL_PASSWORD,
     )
-    logger.debug(proxysql)
-
-    ps_cursor = proxysql.cursor()
-    return ps_cursor
+    logger.debug(ps_connection)
+    return ps_connection
 
 
-def put_to_offline_soft(hostname, cursor):
+def put_to_offline_soft(hostname, connection):
+    cursor = connection.cursor()
     logger.info("Change read-write status for old master")
     logger.info("Setting master status OFFLINE_SOFT")
     sql = "UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='%(hostname)s'" % {'hostname': hostname}
     logger.debug(sql)
     cursor.execute(sql)
     proxysql_update_servers(cursor)
+    time.sleep(SLEEP_TIME)
 
 
 def reconfiure_replication():
-    time.sleep(1)
+    # time.sleep(SLEEP_TIME)
     logger.info("Here python script changes master and slave")
     # run python switch_master.py $OldMaster $NewMaster $Replica
     # subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
     logger.info("Python script has finished working")
 
 
-def delete_old_master(hostname, cursor):
+def delete_old_master(hostname, connection, is_switchover):
+    cursor = connection.cursor()
     logger.info("Delete write old master")
-    sql = "DELETE FROM mysql_servers where hostgroup_id=0 and hostname='%(hostname)s'" % {'hostname': hostname}
+    if is_switchover:
+        sql = "DELETE FROM mysql_servers WHERE hostgroup_id=0 AND hostname='%(hostname)s'" % {'hostname': hostname}
+    else:  # consider it a failover
+        sql = "DELETE FROM mysql_servers WHERE hostname='%(hostname)s'" % {'hostname': hostname}
+
     logger.debug(sql)
     cursor.execute(sql)
     proxysql_update_servers(cursor)
-    time.sleep(1)
+    time.sleep(SLEEP_TIME)
 
 
-def set_new_master(hostname, cursor):
+def set_new_master(hostname, connection):
+    cursor = connection.cursor()
     logger.info("Add new master")
     sql = (
-        "INSERT INTO mysql_servers (hostgroup_id, hostname, port, status, weight) values (0, '%(hostname)s', 3306, 'ONLINE', 1000)" % {
+        "INSERT INTO mysql_servers (hostgroup_id, hostname, port, status, weight) VALUES (0, '%(hostname)s', 3306, 'ONLINE', 1000)" % {
             'hostname': hostname,
         }
     )
     logger.debug(sql)
     cursor.execute(sql)
-    proxysql_update_servers(cursor)
-    time.sleep(1)
+    # proxysql_update_servers(cursor)
+    time.sleep(SLEEP_TIME)
 
 
-def old_master_for_reading(hostname, cursor):
+def old_master_for_reading(hostname, connection, is_switchover):
+    cursor = connection.cursor()
     logger.info("Change status read old master")
     if is_switchover:
         logger.info("Setting master status ONLINE")
@@ -123,18 +132,20 @@ def old_master_for_reading(hostname, cursor):
         logger.debug(sql)
     cursor.execute(sql)
     proxysql_update_servers(cursor)
+    time.sleep(SLEEP_TIME)
 
 
 def main():
-    ps_cursor = get_cursor(dry_run=True)
+    ps_connection = get_conn(dry_run=False)
+    ps_cursor = ps_connection.cursor()
     ps_cursor.execute("SELECT * FROM mysql_servers;")
     logger.info(ps_cursor.fetchall())
 
-    put_to_offline_soft(OldMaster, ps_cursor)
+    put_to_offline_soft(old_master, ps_connection)
     reconfiure_replication()
-    delete_old_master(OldMaster, ps_cursor)
-    set_new_master(OldMaster, ps_cursor)
-    old_master_for_reading(OldMaster, ps_cursor)
+    delete_old_master(old_master, ps_connection, is_switchover)
+    old_master_for_reading(old_master, ps_connection, is_switchover)
+    set_new_master(NewMaster, ps_connection)
 
 
 
