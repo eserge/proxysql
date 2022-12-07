@@ -145,7 +145,6 @@ def main():
     reconfiure_replication()
     delete_old_master(old_master, ps_connection, is_switchover)
     old_master_for_reading(old_master, ps_connection, is_switchover)
-    set_new_master(new_master, ps_connection)
 
 
 

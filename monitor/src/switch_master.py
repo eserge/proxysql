@@ -26,12 +26,13 @@ def connect_db(host, port, user, password):
         port=port,
         user=user,
         password=password,
+        connection_timeout=CONNECTION_TIMEOUT
     )
     return db
 
 
 try:
-    db_old_master = connect_db(old_master_host, db_port, db_user, db_pass, connection_timeout=CONNECTION_TIMEOUT)
+    db_old_master = connect_db(old_master_host, db_port, db_user, db_pass)
 except (DatabaseError, InterfaceError):
     print('Master is dead, nothing to do')
 else:

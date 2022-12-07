@@ -53,7 +53,7 @@ def main():
                 connection = connect(HOST, PORT, USER, PASS)
             except (DatabaseError, InterfaceError):
                 logger.exception("Couldn't connect")
-                return 1
+                continue
             logger.debug(connection)
 
             hostname = select_hostname(connection)
