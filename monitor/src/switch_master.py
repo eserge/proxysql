@@ -11,8 +11,8 @@ old_master_host = sys.argv[1]
 new_master_host = sys.argv[2]
 replica_host = sys.argv[3]
 slavepass = os.getenv('SLAVEPASS')
-db_user = os.getenv('DB_USER')
-db_pass = os.getenv('DB_PASSWORD')
+db_user = os.getenv('ROOT_USER')
+db_pass = os.getenv('ROOT_PASSWORD')
 db_port = os.getenv('DB_PORT')
 
 # Minimal timeout to make switchover faster
@@ -21,6 +21,7 @@ CONNECTION_TIMEOUT = 0.5
 
 
 def connect_db(host, port, user, password):
+    print(f"Trying to connect to {user}:{password}@{host}:{db_port}")
     db = mysql.connector.connect(
         host=host,
         port=port,

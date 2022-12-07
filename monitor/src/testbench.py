@@ -52,10 +52,11 @@ def main():
             try:
                 connection = connect(HOST, PORT, USER, PASS)
             except (DatabaseError, InterfaceError):
-                logger.exception("Couldn't connect")
+                logger.exception("Couldn't connect. Sleeping")
+                time.sleep(10)
                 continue
-            logger.debug(connection)
 
+            logger.debug(connection)
             hostname = select_hostname(connection)
             hosts[hostname] += 1
             logger.info(f"Hostname: {hostname} : {hosts[hostname]} times")

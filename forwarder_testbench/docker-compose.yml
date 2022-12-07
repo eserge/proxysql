@@ -17,4 +17,4 @@ services:
 
 networks:
   mon-fwd-network:
-    name: forwarder-network
+    name: crypto-network
