@@ -13,4 +13,4 @@ services:
 
 networks:
   mon-merch-network:
-    name: crypto-network
+    name: merchant-network
