@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  mon-merch:
+  tst-merch:
     build:
       context: ../monitor/
     container_name: tst-merch
