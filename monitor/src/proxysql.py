@@ -27,8 +27,8 @@ PROXYSQL_PASSWORD = "radmin"
 
 
 old_master = sys.argv[1]  # "192.168.128.3"
-NewMaster = sys.argv[2]  # "192.168.128.4"
-Replica = sys.argv[3]  # "192.168.128.5"
+new_master = sys.argv[2]  # "192.168.128.4"
+replica = sys.argv[3]  # "192.168.128.5"
 try:
     sys.argv[4]  # "no" or any other value
     is_switchover = True
@@ -38,7 +38,7 @@ except IndexError:
 SLEEP_TIME = 5.0
 
 
-logger.debug("Arguments: %s, %s, %s, %s", old_master, NewMaster, Replica, is_switchover)
+logger.debug("Arguments: %s, %s, %s, %s", old_master, new_master, replica, is_switchover)
 
 
 def proxysql_update_servers(cursor):
@@ -87,7 +87,7 @@ def reconfiure_replication():
     # time.sleep(SLEEP_TIME)
     logger.info("Here python script changes master and slave")
     # run python switch_master.py $OldMaster $NewMaster $Replica
-    # subprocess.run(["python", "switch_master.py", OldMaster, NewMaster, Replica])
+    subprocess.run(["python", "switch_master.py", old_master, new_master, replica])
     logger.info("Python script has finished working")
 
 
@@ -145,33 +145,9 @@ def main():
     reconfiure_replication()
     delete_old_master(old_master, ps_connection, is_switchover)
     old_master_for_reading(old_master, ps_connection, is_switchover)
-    set_new_master(NewMaster, ps_connection)
+    set_new_master(new_master, ps_connection)
 
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-
-
-# sleep 1
-# echo "Change status read old master"
-# if [[ $Switch = "yes" ]]; then
-#   echo "Setting master status ONLINE"
-#   docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname=\"$OldMaster\";"
-# else
-# echo "Setting master status SHUNNED"
-#   docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "UPDATE mysql_servers SET status='SHUNNED' WHERE hostgroup_id=1 AND hostname=\"$OldMaster\";"
-# fi
-# docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "LOAD MYSQL SERVERS TO RUNTIME;"
-# docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "SAVE MYSQL SERVERS TO DISK;"
-
-# sleep 1
-# echo "---New tables---"
-# docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 -e "SELECT * from mysql_servers;"
-
-# UPDATE mysql_servers SET status='OFFLINE_SOFT' WHERE hostname='192.168.128.3'
-# DELETE FROM mysql_servers where hostgroup_id=0 and hostname='192.168.128.3'
-# UPDATE mysql_servers SET status='ONLINE' WHERE hostgroup_id=1 AND hostname='192.168.128.3'
