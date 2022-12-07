@@ -36,3 +36,10 @@ docker exec -it proxysql-merch mysql -u admin -padmin -h 127.0.0.1 -P6032 --prom
 python ping.py
 ```
 Then stop DB container
+
+# Privileges
+```
+CREATE USER 'root'@'%' IDENTIFIED VIA mysql_native_password USING PASSWORD('secret');
+GRANT ALL PRIVILEGES on *.* TO  'root'@'%';
+FLUSH PRIVILEGES;
+```

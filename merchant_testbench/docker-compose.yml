@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  mon-merch:
+    build:
+      context: ../monitor/
+    container_name: tst-merch
+    command: python testbench.py
+    env_file:
+      - .env
+    networks:
+      mon-merch-network:
+        ipv4_address: 192.168.96.201
+
+networks:
+  mon-merch-network:
+    name: crypto-network
