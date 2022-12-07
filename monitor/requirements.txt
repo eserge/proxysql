@@ -19,3 +19,4 @@ six==1.16.0
 stack-data==0.6.0
 traitlets==5.5.0
 wcwidth==0.2.5
+pudb==2022.1.3
