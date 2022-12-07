@@ -39,19 +39,19 @@ mysql_servers =
 		address="192.168.96.3"
 		port=3306           
 		hostgroup=0
-		weight=900
+		weight=1000
 	},
 	{
 		address="192.168.96.4"
 		port=3306       
 		hostgroup=1
-		weight=900
+		weight=1000
 	},
 	{
 		address="192.168.96.5"
 		port=3306           
 		hostgroup=1
-		weight=900
+		weight=1000
 	},
 	{
 		address="192.168.96.3"
