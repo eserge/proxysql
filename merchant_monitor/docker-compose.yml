@@ -5,6 +5,7 @@ services:
     build:
       context: ../monitor/
     container_name: mon-merch
+    command: python ping.py 192.168.96.3 192.168.96.4 192.168.96.5
     env_file:
       - .env
     networks:
