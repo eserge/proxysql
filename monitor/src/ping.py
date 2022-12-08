@@ -55,7 +55,7 @@ if __name__ == "__main__":
     except IndexError:
         second_replica = "192.168.128.5"
 
-    db_port = os.getenv("DB_PORT", 3306)
+    db_port = int(os.getenv("DB_PORT", 3306))
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
 
