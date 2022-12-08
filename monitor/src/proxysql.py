@@ -17,18 +17,15 @@ if len(sys.argv) < 3:
     print("proxysql.py [old_master] [new_master] [replica]")
     exit()
 
-# PROXYSQL_HOST = sys.argv[1]
-# PROXYSQL_PORT = sys.argv[2]
-
 PROXYSQL_HOST = os.getenv("PROXYSQL_HOST")
 PROXYSQL_PORT = os.getenv("PROXYSQL_PORT")
 PROXYSQL_USER = "radmin"
 PROXYSQL_PASSWORD = "radmin"
 
 
-old_master = sys.argv[1]  # "192.168.128.3"
-new_master = sys.argv[2]  # "192.168.128.4"
-replica = sys.argv[3]  # "192.168.128.5"
+old_master = sys.argv[1]
+new_master = sys.argv[2]
+replica = sys.argv[3]
 try:
     sys.argv[4]  # "no" or any other value
     is_switchover = True

@@ -5,6 +5,7 @@ services:
     build:
       context: ../monitor/
     container_name: mon-fwd
+    command: python ping.py 192.168.128.3 192.168.128.4 192.168.128.5
     env_file:
       - .env
     networks:

@@ -7,7 +7,7 @@ import os
 import mysql.connector
 from mysql.connector.errors import DatabaseError, InterfaceError
 
-CONNECTION_TIMEOUT = float(os.getenv("CONNECTION_TIMEOUT", 3.0))
+CONNECTION_TIMEOUT = int(os.getenv("CONNECTION_TIMEOUT", 3))
 
 
 def ping(user, password, port, current_master, new_master, replica):
