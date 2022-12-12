@@ -17,23 +17,28 @@ db_port = os.getenv('DB_PORT')
 
 # Minimal timeout to make switchover faster
 # If we are in this script, DB should be dead anyway
-CONNECTION_TIMEOUT = 0.5
+CONNECTION_TIMEOUT = 1
 
 
-def connect_db(host, port, user, password):
+def connect_db(host, port, user, password, connection_timeout=None):
+    args = {
+        "host": host,
+        "port": port,
+        "user": user,
+        "password": password,
+    }
+    if connection_timeout:
+        args["connection_timeout"] = connection_timeout
+
     print(f"Trying to connect to {user}:{password}@{host}:{db_port}")
-    db = mysql.connector.connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        connection_timeout=CONNECTION_TIMEOUT
-    )
+    db = mysql.connector.connect(**args)
     return db
 
 
 try:
-    db_old_master = connect_db(old_master_host, db_port, db_user, db_pass)
+    db_old_master = connect_db(
+        old_master_host, db_port, db_user, db_pass, connection_timeout=CONNECTION_TIMEOUT
+    )
 except (DatabaseError, InterfaceError):
     print('Master is dead, nothing to do')
 else:
@@ -60,7 +65,7 @@ cursor_replica = db_replica.cursor()
 print('---Starting set up a new master---')
 cursor_new_master.execute("STOP SLAVE;")
 cursor_new_master.execute("RESET MASTER;")
-cursor_new_master.execute(f"CREATE USER repl@'{old_master_host}' IDENTIFIED VIA mysql_native_password USING PASSWORD('{slavepass}');")
+cursor_new_master.execute(f"CREATE USER IF NOT EXISTS repl@'{old_master_host}' IDENTIFIED VIA mysql_native_password USING PASSWORD('{slavepass}');")
 cursor_new_master.execute(f"GRANT REPLICATION SLAVE ON *.* TO repl@'{old_master_host}';")
 cursor_new_master.execute("FLUSH PRIVILEGES;")
 cursor_new_master.execute("FLUSH TABLES WITH READ LOCK;")
@@ -70,7 +75,7 @@ cursor_new_master.execute("SHOW MASTER status;")
 res = cursor_new_master.fetchall()
 print('---Master status---')
 print(res)
-print('---Indicating replica to a new master---')
+print('---Pointing replica to a new master---')
 cursor_replica.execute("STOP SLAVE;")
 cursor_replica.execute(f"CHANGE MASTER TO MASTER_HOST='{new_master_host}', MASTER_USER='repl', MASTER_PASSWORD='{slavepass}';")
 cursor_replica.execute("START SLAVE;")
