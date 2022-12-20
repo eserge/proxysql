@@ -62,6 +62,8 @@ db_replica = connect_db(replica_host, db_port, db_user, db_pass)
 
 cursor_new_master = db_new_master.cursor()
 cursor_replica = db_replica.cursor()
+
+
 print('---Starting set up a new master---')
 cursor_new_master.execute("STOP SLAVE;")
 cursor_new_master.execute("RESET MASTER;")
@@ -75,6 +77,8 @@ cursor_new_master.execute("SHOW MASTER status;")
 res = cursor_new_master.fetchall()
 print('---Master status---')
 print(res)
+
+
 print('---Pointing replica to a new master---')
 cursor_replica.execute("STOP SLAVE;")
 cursor_replica.execute(f"CHANGE MASTER TO MASTER_HOST='{new_master_host}', MASTER_USER='repl', MASTER_PASSWORD='{slavepass}';")

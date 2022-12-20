@@ -43,3 +43,19 @@ CREATE USER 'root'@'%' IDENTIFIED VIA mysql_native_password USING PASSWORD('secr
 GRANT ALL PRIVILEGES on *.* TO  'root'@'%';
 FLUSH PRIVILEGES;
 ```
+
+# Restore old replication configuration
+## On Master
+```sql
+flush logs;
+show master status;
+```
+Take a note of bin log file and a position
+
+## On slave
+```sql
+stop slave;
+CHANGE MASTER TO MASTER_LOG_FILE='file', MASTER_LOG_POS=pos;
+start slave;
+show slave status\G
+```
